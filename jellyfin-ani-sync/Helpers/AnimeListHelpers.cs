@@ -26,8 +26,16 @@ namespace jellyfin_ani_sync.Helpers {
             if (animeListXml == null) return (null, null);
             Dictionary<string, string> providers;
             if (video is Episode) {
+                var episode = video as Episode;
                 //Search for Anidb id at season level
-                providers = (video as Episode).Season.ProviderIds.ContainsKey("Anidb") ? (video as Episode).Season.ProviderIds : (video as Episode).Series.ProviderIds;
+                if (episode.Season.ProviderIds.ContainsKey("Anidb")) {
+                    if (int.TryParse(episode.Season.ProviderIds["Anidb"], out aniDbId)) {
+                        logger.LogInformation($"(Anidb) Anime {episode.Series.Name} already has an AniDB ID {aniDbId}; no need to look it up");
+                        return (aniDbId, null);
+                    } else return (null, null);
+                } else {
+                    providers = episode.Series.ProviderIds;
+                }
             } else if (video is Movie) {
                 providers = (video as Movie).ProviderIds;
             } else {
@@ -53,20 +61,21 @@ namespace jellyfin_ani_sync.Helpers {
                             // contains more than 1 season, need to do a lookup
                             logger.LogInformation($"(Anidb) Anime {episode.Series.Name} found in anime XML file");
                             logger.LogInformation($"(Anidb) Looking up anime {episode.Series.Name} in the anime XML file by absolute episode number...");
-                            var (aniDb, episodeOffset) = GetAniDbByEpisodeOffset(logger, GetAbsoluteEpisodeNumber(episode), seasonNumber, episodeNumber, related);
+                            var aniDb = GetAniDbByEpisodeOffset(logger, GetAbsoluteEpisodeNumber(episode), seasonNumber, related);
                             if (aniDb != null) {
                                 logger.LogInformation($"(Anidb) Anime {episode.Series.Name} found in anime XML file, detected AniDB ID {aniDb}");
-                                return (aniDb, episodeOffset);
+                                return (aniDb.Value, null);
                             } else {
                                 logger.LogInformation($"(Anidb) Anime {episode.Series.Name} could not found in anime XML file; falling back to other metadata providers if available...");
                             }
                         } else {
                             if (video is Episode episodeWithMultipleSeasons && episodeWithMultipleSeasons.Season.IndexNumber > 1) {
                                 // user doesnt have full series; have to do season lookup
-                                logger.LogInformation($"(Anidb) Anime {episodeWithMultipleSeasons.Series.Name} found in anime XML file");
-                                return SeasonLookup(logger, seasonNumber, episodeNumber, related);
+                                logger.LogInformation($"(Tvdb) Anime {episodeWithMultipleSeasons.Series.Name} found in anime XML file");
+                                var aniDb = SeasonLookup(logger, seasonNumber, related);
+                                return aniDb != null ? (aniDb, null) : (null, null);
                             } else {
-                                logger.LogInformation($"(Anidb) Anime {video.Name} found in anime XML file");
+                                logger.LogInformation($"(Tvdb) Anime {video.Name} found in anime XML file");
                                 // is movie / only has one season / no related; just return the only result
                                 return int.TryParse(related.First().Anidbid, out aniDbId) ? (aniDbId, null) : (null, null);
                             }
@@ -102,20 +111,13 @@ namespace jellyfin_ani_sync.Helpers {
                 }
 
                 logger.LogInformation("(Tvdb) Anime reference found in anime list XML");
-
-                var first = related.First();
-                if (related.Count() == 1) {
-                    return (
-                        int.TryParse(first.Anidbid, out aniDbId) ? aniDbId : null,
-                        int.TryParse(first.Episodeoffset, out var episodeOffset) ? episodeOffset : null
-                    );
-                }
+                if (related.Count() == 1) return int.TryParse(related.First().Anidbid, out aniDbId) ? (aniDbId, null) : (null, null);
 
                 if (video is Episode episode && episode.Series.Children.OfType<Season>().Count() > 1) {
-                    var (aniDb, episodeOffset) = GetAniDbByEpisodeOffset(logger, GetAbsoluteEpisodeNumber(episode), seasonNumber, episodeNumber, related);
+                    var aniDb = GetAniDbByEpisodeOffset(logger, GetAbsoluteEpisodeNumber(episode), seasonNumber, related);
                     if (aniDb != null) {
                         logger.LogInformation($"(Tvdb) Anime {episode.Series.Name} found in anime XML file, detected AniDB ID {aniDb}");
-                        return (aniDb.Value, episodeOffset);
+                        return (aniDb.Value, null);
                     } else {
                         logger.LogInformation($"(Tvdb) Anime {episode.Series.Name} could not found in anime XML file; falling back to other metadata providers if available...");
                     }
@@ -123,14 +125,12 @@ namespace jellyfin_ani_sync.Helpers {
                     if (video is Episode episodeWithMultipleSeasons && episodeWithMultipleSeasons.Season.IndexNumber > 1) {
                         // user doesnt have full series; have to do season lookup
                         logger.LogInformation($"(Tvdb) Anime {episodeWithMultipleSeasons.Name} found in anime XML file");
-                        return SeasonLookup(logger, seasonNumber, episodeNumber, related);
+                        var aniDb = SeasonLookup(logger, seasonNumber, related);
+                        return aniDb != null ? (aniDb, null) : (null, null);
                     } else {
                         logger.LogInformation($"(Tvdb) Anime {video.Name} found in anime XML file");
                         // is movie / only has one season / no related; just return the only result
-                        return (
-                            int.TryParse(first.Anidbid, out aniDbId) ? aniDbId : null,
-                            int.TryParse(first.Episodeoffset, out var episodeOffset) ? episodeOffset : null
-                        );
+                        return int.TryParse(related.First().Anidbid, out aniDbId) ? (aniDbId, null) : (null, null);
                     }
                 }
             }
@@ -138,56 +138,26 @@ namespace jellyfin_ani_sync.Helpers {
             return (null, null);
         }
 
-        private static (int? aniDbId, int? episodeOffset) GetAniDbByEpisodeOffset(ILogger logger, int? absoluteEpisodeNumber, int seasonNumber, int episodeNumber, List<AnimeListAnime> related) {
+        private static int? GetAniDbByEpisodeOffset(ILogger logger, int? absoluteEpisodeNumber, int seasonNumber, List<AnimeListAnime> related) {
             if (absoluteEpisodeNumber != null) {
-                // FIXME: return correct offset when using absolute episode
-                // numbers.
-                var foundMapping = related.FirstOrDefault(animeListAnime => animeListAnime.MappingList?.Mapping?.FirstOrDefault(mapping => mapping.Start < absoluteEpisodeNumber && mapping.End > absoluteEpisodeNumber) != null);
+                var foundMapping = related.FirstOrDefault(animeListAnime => animeListAnime.MappingList?.Mapping?.FirstOrDefault(mapping => mapping.Start < absoluteEpisodeNumber && mapping.End > absoluteEpisodeNumber) != null)?.Anidbid;
                 if (foundMapping != null) {
-                    return (int.TryParse(foundMapping.Anidbid, out var aniDbId) ? aniDbId : null, null);
+                    return int.Parse(foundMapping);
                 } else {
                     logger.LogWarning("(AniDb) Could not lookup using absolute episode number (reason: no mappings found)");
-                    return SeasonLookup(logger, seasonNumber, episodeNumber, related);
+                    return SeasonLookup(logger, seasonNumber, related);
                 }
             } else {
                 logger.LogWarning("(AniDb) Could not lookup using absolute episode number (reason: absolute episode number is null)");
-                return SeasonLookup(logger, seasonNumber, episodeNumber, related);
+                return SeasonLookup(logger, seasonNumber, related);
             }
         }
 
-        private static (int? aniDbId, int? episodeOffset) SeasonLookup(ILogger logger, int seasonNumber, int episodeNumber, List<AnimeListAnime> related) {
+        private static int? SeasonLookup(ILogger logger, int seasonNumber, List<AnimeListAnime> related) {
             logger.LogInformation("Looking up AniDB by season offset");
-
-            // First, consider mappings from absolute-numbered seasons. If there
-            // are no matches, compare episode number against episodeoffset
-            // attribute for each matching season number. Note that order is
-            // important in this case: we do not want to match previous season
-            // that would have lower episode offset.
-            var foundMapping =
-                related
-                    .Where(animeListAnime => animeListAnime.Defaulttvdbseason == "a")
-                    .FirstOrDefault(
-                        animeListAnime =>
-                            animeListAnime.MappingList.Mapping.FirstOrDefault(
-                                mapping => mapping.Tvdbseason == seasonNumber
-                            ) != null
-                    )
-                ?? related
-                    .Where(animeListAnime => animeListAnime.Defaulttvdbseason == seasonNumber.ToString())
-                    .OrderBy(animeListAnime => int.TryParse(animeListAnime.Episodeoffset, out var n) ? n : 0)
-                    .LastOrDefault(
-                        animeListAnime =>
-                            animeListAnime.Episodeoffset == null
-                            || !int.TryParse(animeListAnime.Episodeoffset, out var episodeOffset)
-                            || episodeOffset < episodeNumber
-                    );
-
-            
-
-            return (
-                int.TryParse(foundMapping?.Anidbid, out var aniDbId) ? aniDbId : null,
-                int.TryParse(foundMapping?.Episodeoffset, out var episodeOffset) ? episodeOffset : null
-            );
+            var foundMapping = related.Where(animeListAnime => animeListAnime.Defaulttvdbseason == "a").FirstOrDefault(animeListAnime => animeListAnime.MappingList.Mapping.FirstOrDefault(mapping => mapping.Tvdbseason == seasonNumber) != null)?.Anidbid ??
+                               related.FirstOrDefault(animeListAnime => animeListAnime.Defaulttvdbseason == seasonNumber.ToString())?.Anidbid;
+            return foundMapping != null ? int.Parse(foundMapping) : null;
         }
 
         private static int? GetAbsoluteEpisodeNumber(Episode episode) {
