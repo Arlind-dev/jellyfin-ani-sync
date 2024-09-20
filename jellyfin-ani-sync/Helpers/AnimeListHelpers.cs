@@ -190,8 +190,6 @@ namespace jellyfin_ani_sync.Helpers {
                             || episodeOffset < episodeNumber
                     );
 
-            
-
             return (
                 int.TryParse(foundMapping?.Anidbid, out var aniDbId) ? aniDbId : null,
                 int.TryParse(foundMapping?.Episodeoffset, out var episodeOffset) ? episodeOffset : null
