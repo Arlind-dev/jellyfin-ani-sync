@@ -21,13 +21,21 @@ namespace jellyfin_ani_sync.Helpers {
         /// <param name="episodeNumber">Episode number.</param>
         /// <param name="seasonNumber">Season number.</param>
         /// <returns></returns>
-        public static async Task<(int? aniDbId, int? episodeOffset)> GetAniDbId(ILogger logger, Video video, int episodeNumber, int seasonNumber, AnimeListXml animeListXml) {
+        public static async Task<(int? aniDbId, int? episodeOffset)> GetAniDbId(ILogger logger, ILoggerFactory loggerFactory, IHttpClientFactory httpClientFactory, IApplicationPaths applicationPaths, Video video, int episodeNumber, int seasonNumber, AnimeListXml animeListXml) {
             int aniDbId;
             if (animeListXml == null) return (null, null);
             Dictionary<string, string> providers;
             if (video is Episode) {
+                var episode = video as Episode;
                 //Search for Anidb id at season level
-                providers = (video as Episode).Season.ProviderIds.ContainsKey("Anidb") ? (video as Episode).Season.ProviderIds : (video as Episode).Series.ProviderIds;
+                if (episode.Season.ProviderIds.ContainsKey("Anidb")) {
+                    if (int.TryParse(episode.Season.ProviderIds["Anidb"], out aniDbId)) {
+                        logger.LogInformation($"(Anidb) Anime {episode.Series.Name} already has an AniDB ID {aniDbId}; no need to look it up");
+                        return (aniDbId, null);
+                    } else return (null, null);
+                } else {
+                    providers = episode.Series.ProviderIds;
+                }
             } else if (video is Movie) {
                 providers = (video as Movie).ProviderIds;
             } else {
@@ -182,7 +190,7 @@ namespace jellyfin_ani_sync.Helpers {
                             || episodeOffset < episodeNumber
                     );
 
-            
+
 
             return (
                 int.TryParse(foundMapping?.Anidbid, out var aniDbId) ? aniDbId : null,
@@ -214,16 +222,20 @@ namespace jellyfin_ani_sync.Helpers {
         /// <summary>
         /// Get the season number of an AniDb entry.
         /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="loggerFactory"></param>
+        /// <param name="httpClientFactory"></param>
+        /// <param name="applicationPaths"></param>
         /// <param name="aniDbId"></param>
         /// <returns>Season.</returns>
-        public static AnimeListAnime GetAniDbSeason(int aniDbId, AnimeListXml animeListXml) {
+        public static async Task<AnimeListAnime> GetAniDbSeason(ILogger logger, ILoggerFactory loggerFactory, IHttpClientFactory httpClientFactory, IApplicationPaths applicationPaths, int aniDbId, AnimeListXml animeListXml) {
             if (animeListXml == null) return null;
 
             return animeListXml.Anime.FirstOrDefault(anime => int.TryParse(anime.Anidbid, out int xmlAniDbId) && xmlAniDbId == aniDbId);
         }
 
 
-        public static IEnumerable<AnimeListAnime> ListAllSeasonOfAniDbSeries(int aniDbId, AnimeListXml animeListXml) {
+        public static async Task<IEnumerable<AnimeListAnime>> ListAllSeasonOfAniDbSeries(ILogger logger, ILoggerFactory loggerFactory, IHttpClientFactory httpClientFactory, IApplicationPaths applicationPaths, int aniDbId, AnimeListXml animeListXml) {
             if (animeListXml == null) return null;
 
             AnimeListAnime foundXmlAnime = animeListXml.Anime.FirstOrDefault(anime => int.TryParse(anime.Anidbid, out int xmlAniDbId) && xmlAniDbId == aniDbId);
