@@ -6,6 +6,15 @@
     "description": "Synchronize anime watch status between Jellyfin and anime tracking sites.",
     "owner": "vosmiic",
     "overview": "Synchronize anime watch status",
-    "versions": []
+    "versions": [
+      {
+        "checksum": "e70a6738701444c5c11bcf547e94304e",
+        "changelog": "Automated release for version 3.5.0.1",
+        "targetAbi": "10.9.11.0",
+        "sourceUrl": "https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v3.5.0.1/10.9.11.0.-.ani-sync_3.5.0.1.zip",
+        "timestamp": "2024-11-04T12:05:58Z",
+        "version": "3.5.0.1"
+      }
+    ]
   }
 ]
