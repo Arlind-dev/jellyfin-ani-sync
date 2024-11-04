@@ -49,21 +49,24 @@ jobs:
     - name: Authenticate with GitHub CLI
       run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
-    - name: Extract and determine version
+    - name: Extract and determine version and targetAbi
       id: determine_version
       run: |
         LATEST_VERSION=$(jq -r '.[0].versions | sort_by(.timestamp) | last | .version' ./beta-manifest.json)
         BASE_VERSION=${LATEST_VERSION%.*}
         LAST_DIGIT=${LATEST_VERSION##*.}
-        NEXT_VERSION=$LATEST_VERSION
+        NEXT_VERSION="$BASE_VERSION.$((LAST_DIGIT + 1))"
 
-        while gh release view "v$NEXT_VERSION" --json tagName -q '.tagName' &>/dev/null; do
-          LAST_DIGIT=$((LAST_DIGIT + 1))
-          NEXT_VERSION="$BASE_VERSION.$LAST_DIGIT"
-        done
+        TARGET_ABI=$(jq -r '.[0].versions | sort_by(.timestamp) | last | .targetAbi' ./beta-manifest.json)
+
+        if [[ "$TARGET_ABI" < "10.10.0" ]]; then
+          TARGET_ABI="10.10.0"
+        fi
 
         echo "NEXT_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
+        echo "TARGET_ABI=$TARGET_ABI" >> $GITHUB_ENV
         echo "::set-output name=next_version::$NEXT_VERSION"
+        echo "::set-output name=target_abi::$TARGET_ABI"
 
     - name: Create a new tag and release
       run: |
@@ -75,16 +78,18 @@ jobs:
       run: |
         CHECKSUM=$(sha256sum jellyfin-ani-sync.dll | awk '{ print $1 }')
         TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-        SOURCE_URL="https://github.com/vosmiic/jellyfin-ani-sync/releases/download/v${{ steps.determine_version.outputs.next_version }}/10.9.11.-.ani-sync_${{ steps.determine_version.outputs.next_version }}.zip"
+        SOURCE_URL="https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v${{ steps.determine_version.outputs.next_version }}/10.9.11.-.ani-sync_${{ steps.determine_version.outputs.next_version }}.zip"
+
         NEW_VERSION_ENTRY=$(jq --null-input \
           --arg checksum "$CHECKSUM" \
           --arg changelog "Automated release for version ${{ steps.determine_version.outputs.next_version }}" \
-          --arg targetAbi "10.9.11.0" \
+          --arg targetAbi "${{ steps.determine_version.outputs.target_abi }}" \
           --arg sourceUrl "$SOURCE_URL" \
           --arg timestamp "$TIMESTAMP" \
           --arg version "${{ steps.determine_version.outputs.next_version }}" \
           '{checksum: $checksum, changelog: $changelog, targetAbi: $targetAbi, sourceUrl: $sourceUrl, timestamp: $timestamp, version: $version}')
-        jq '.[] | .versions += [$NEW_VERSION_ENTRY]' fork-manifest.json > updated-manifest.json
+
+        jq '.[].versions |= map(select(. != {})) + [$NEW_VERSION_ENTRY]' fork-manifest.json > updated-manifest.json
         mv updated-manifest.json fork-manifest.json
 
     - name: Commit and push updated manifest
