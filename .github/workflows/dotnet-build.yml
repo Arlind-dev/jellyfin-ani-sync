@@ -83,6 +83,8 @@ jobs:
         run: |
           ZIP_NAME="${{ env.TARGET_ABI }}.-.ani-sync_${{ env.NEXT_VERSION }}.zip"
           zip "$ZIP_NAME" jellyfin-ani-sync.dll meta.json
+          CHECKSUM=$(md5sum "$ZIP_NAME" | awk '{ print $1 }')
+          echo "CHECKSUM=$CHECKSUM" >> $GITHUB_ENV
 
       - name: Create a new tag and release
         run: |
@@ -93,16 +95,15 @@ jobs:
 
       - name: Update fork-manifest.json
         run: |
-          CHECKSUM=$(sha256sum jellyfin-ani-sync.dll | awk '{ print $1 }')
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           SOURCE_URL="https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v${{ env.NEXT_VERSION }}/${{ env.TARGET_ABI }}.-.ani-sync_${{ env.NEXT_VERSION }}.zip"
-          jq --arg checksum "$CHECKSUM" \
+          jq --arg checksum "${{ env.CHECKSUM }}" \
              --arg changelog "Automated release for version ${{ env.NEXT_VERSION }}" \
              --arg targetAbi "${{ env.TARGET_ABI }}" \
              --arg sourceUrl "$SOURCE_URL" \
              --arg timestamp "$TIMESTAMP" \
              --arg version "${{ env.NEXT_VERSION }}" \
-             '.versions += [{checksum: $checksum, changelog: $changelog, targetAbi: $targetAbi, sourceUrl: $sourceUrl, timestamp: $timestamp, version: $version}]' \
+             '.[0].versions = [{checksum: $checksum, changelog: $changelog, targetAbi: $targetAbi, sourceUrl: $sourceUrl, timestamp: $timestamp, version: $version}] + .[0].versions' \
              fork-manifest.json > updated-manifest.json
           mv updated-manifest.json fork-manifest.json
 
