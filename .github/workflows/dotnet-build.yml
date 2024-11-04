@@ -17,7 +17,7 @@ jobs:
         with:
           dotnet-version: 8.x
 
-      - name: Extract and determine version and targetAbi
+      - name: Extract and determine version
         id: determine_version
         run: |
           LATEST_VERSION=$(jq -r '.[0].versions | sort_by(.timestamp) | last | .version' ./beta-manifest.json)
@@ -28,14 +28,11 @@ jobs:
             LAST_DIGIT=$((LAST_DIGIT + 1))
             NEXT_VERSION="$BASE_VERSION.$LAST_DIGIT"
           done
-          TARGET_ABI=$(jq -r '.[0].versions | sort_by(.timestamp) | last | .targetAbi' ./beta-manifest.json)
-          echo "NEXT_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
-          echo "TARGET_ABI=$TARGET_ABI" >> $GITHUB_ENV
 
       - name: Restore dependencies
         run: dotnet restore
 
-      - name: Build the project with dynamic version
+      - name: Build the project
         run: dotnet publish -p:Version=${{ env.NEXT_VERSION }} --configuration Release --output bin
 
       - name: Upload build artifact
@@ -55,6 +52,21 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: jellyfin-ani-sync
+
+      - name: Extract and determine version and targetAbi for release
+        id: determine_version
+        run: |
+          LATEST_VERSION=$(jq -r '.[0].versions | sort_by(.timestamp) | last | .version' ./beta-manifest.json)
+          BASE_VERSION=${LATEST_VERSION%.*}
+          LAST_DIGIT=${LATEST_VERSION##*.}
+          NEXT_VERSION="$BASE_VERSION.$((LAST_DIGIT + 1))"
+          while git ls-remote --tags origin | grep -q "refs/tags/v$NEXT_VERSION"; do
+            LAST_DIGIT=$((LAST_DIGIT + 1))
+            NEXT_VERSION="$BASE_VERSION.$LAST_DIGIT"
+          done
+          TARGET_ABI=$(jq -r '.[0].versions | sort_by(.timestamp) | last | .targetAbi' ./beta-manifest.json)
+          echo "NEXT_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
+          echo "TARGET_ABI=$TARGET_ABI" >> $GITHUB_ENV
 
       - name: Install GitHub CLI
         run: sudo apt-get install -y gh
