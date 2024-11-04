@@ -28,11 +28,12 @@ jobs:
             LAST_DIGIT=$((LAST_DIGIT + 1))
             NEXT_VERSION="$BASE_VERSION.$LAST_DIGIT"
           done
+          echo "NEXT_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
 
       - name: Restore dependencies
         run: dotnet restore
 
-      - name: Build the project
+      - name: Build the project with dynamic version
         run: dotnet publish -p:Version=${{ env.NEXT_VERSION }} --configuration Release --output bin
 
       - name: Upload build artifact
