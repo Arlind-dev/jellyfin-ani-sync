@@ -8,16 +8,14 @@ on:
       - 'jellyfin-ani-sync/**'
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  version:
+    runs-on: ubuntu-22.04
+    outputs:
+      NEXT_VERSION: ${{ steps.determine_version.outputs.next_version }}
+      TARGET_ABI: ${{ steps.determine_version.outputs.target_abi }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up .NET
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: 8.x
+        uses: actions/checkout@v4
 
       - name: Extract and determine version
         id: determine_version
@@ -30,49 +28,45 @@ jobs:
             LAST_DIGIT=$((LAST_DIGIT + 1))
             NEXT_VERSION="$BASE_VERSION.$LAST_DIGIT"
           done
-          echo "NEXT_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
+          TARGET_ABI=$(jq -r '.[0].versions | sort_by(.timestamp) | last | .targetAbi' ./beta-manifest.json)
+          echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          echo "target_abi=$TARGET_ABI" >> $GITHUB_OUTPUT
+
+  build:
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.x
 
       - name: Restore dependencies
         run: dotnet restore
 
       - name: Build the project with dynamic version
-        run: dotnet publish -p:Version=${{ env.NEXT_VERSION }} --configuration Release --output bin
+        run: dotnet publish -p:Version=${{ needs.version.outputs.NEXT_VERSION }} --configuration Release
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: jellyfin-ani-sync
-          path: ./bin/jellyfin-ani-sync.dll
+          path: ./jellyfin-ani-sync-unit-tests/bin/Release/net8.0/jellyfin-ani-sync.dll
 
   release:
     runs-on: ubuntu-latest
-    needs: build
+    needs: [version, build]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Download build artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: jellyfin-ani-sync
-
-      - name: Extract and determine version and targetAbi for release
-        id: determine_version
-        run: |
-          LATEST_VERSION=$(jq -r '.[0].versions | sort_by(.timestamp) | last | .version' ./beta-manifest.json)
-          BASE_VERSION=${LATEST_VERSION%.*}
-          LAST_DIGIT=${LATEST_VERSION##*.}
-          NEXT_VERSION="$BASE_VERSION.$((LAST_DIGIT + 1))"
-          while git ls-remote --tags origin | grep -q "refs/tags/v$NEXT_VERSION"; do
-            LAST_DIGIT=$((LAST_DIGIT + 1))
-            NEXT_VERSION="$BASE_VERSION.$LAST_DIGIT"
-          done
-          TARGET_ABI=$(jq -r '.[0].versions | sort_by(.timestamp) | last | .targetAbi' ./beta-manifest.json)
-          echo "NEXT_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
-          echo "TARGET_ABI=$TARGET_ABI" >> $GITHUB_ENV
-
-      - name: Install GitHub CLI
-        run: sudo apt-get install -y gh
 
       - name: Authenticate with GitHub CLI
         run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
@@ -88,36 +82,37 @@ jobs:
             "name": "Ani-Sync",
             "overview": "Synchronize anime watch status",
             "owner": "vosmiic",
-            "targetAbi": "${{ env.TARGET_ABI }}",
+            "targetAbi": "${{ needs.version.outputs.TARGET_ABI }}",
             "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
-            "version": "${{ env.NEXT_VERSION }}"
+            "version": "${{ needs.version.outputs.NEXT_VERSION }}"
           }
           EOL
 
       - name: Create release zip
         run: |
-          ZIP_NAME="${{ env.TARGET_ABI }}.-.ani-sync_${{ env.NEXT_VERSION }}.zip"
+          ZIP_NAME="${{ needs.version.outputs.TARGET_ABI }}.-.ani-sync_${{ needs.version.outputs.NEXT_VERSION }}.zip"
           zip "$ZIP_NAME" jellyfin-ani-sync.dll meta.json
           CHECKSUM=$(md5sum "$ZIP_NAME" | awk '{ print $1 }')
           echo "CHECKSUM=$CHECKSUM" >> $GITHUB_ENV
 
       - name: Create a new tag and release
+        if: needs.version.outputs.NEXT_VERSION != ''
         run: |
-          git tag "v${{ env.NEXT_VERSION }}"
-          git push origin "v${{ env.NEXT_VERSION }}"
-          ZIP_NAME="${{ env.TARGET_ABI }}.-.ani-sync_${{ env.NEXT_VERSION }}.zip"
-          gh release create "v${{ env.NEXT_VERSION }}" "$ZIP_NAME" --title "Release v${{ env.NEXT_VERSION }}" --notes "Automated release for version ${{ env.NEXT_VERSION }}"
+          git tag "v${{ needs.version.outputs.NEXT_VERSION }}"
+          git push origin "v${{ needs.version.outputs.NEXT_VERSION }}"
+          ZIP_NAME="${{ needs.version.outputs.TARGET_ABI }}.-.ani-sync_${{ needs.version.outputs.NEXT_VERSION }}.zip"
+          gh release create "v${{ needs.version.outputs.NEXT_VERSION }}" "$ZIP_NAME" --title "Release v${{ needs.version.outputs.NEXT_VERSION }}" --notes "Automated release for version ${{ needs.version.outputs.NEXT_VERSION }}"
 
       - name: Update fork-manifest.json
         run: |
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          SOURCE_URL="https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v${{ env.NEXT_VERSION }}/${{ env.TARGET_ABI }}.-.ani-sync_${{ env.NEXT_VERSION }}.zip"
+          SOURCE_URL="https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v${{ needs.version.outputs.NEXT_VERSION }}/${{ needs.version.outputs.TARGET_ABI }}.-.ani-sync_${{ needs.version.outputs.NEXT_VERSION }}.zip"
           jq --arg checksum "${{ env.CHECKSUM }}" \
-             --arg changelog "Automated release for version ${{ env.NEXT_VERSION }}" \
-             --arg targetAbi "${{ env.TARGET_ABI }}" \
+             --arg changelog "Automated release for version ${{ needs.version.outputs.NEXT_VERSION }}" \
+             --arg targetAbi "${{ needs.version.outputs.TARGET_ABI }}" \
              --arg sourceUrl "$SOURCE_URL" \
              --arg timestamp "$TIMESTAMP" \
-             --arg version "${{ env.NEXT_VERSION }}" \
+             --arg version "${{ needs.version.outputs.NEXT_VERSION }}" \
              '.[0].versions = [{checksum: $checksum, changelog: $changelog, targetAbi: $targetAbi, sourceUrl: $sourceUrl, timestamp: $timestamp, version: $version}] + .[0].versions' \
              fork-manifest.json > updated-manifest.json
           mv updated-manifest.json fork-manifest.json
@@ -127,5 +122,5 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git add fork-manifest.json
-          git commit -m "Update fork-manifest.json for release v${{ env.NEXT_VERSION }}"
+          git commit -m "Update fork-manifest.json for release v${{ needs.version.outputs.NEXT_VERSION }}"
           git push origin shokofix
