@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - shokofix
-    paths:
-      - 'jellyfin-ani-sync/**'
 
 jobs:
   version:
@@ -76,7 +74,6 @@ jobs:
           cat <<EOL > meta.json
           {
             "category": "General",
-            "changelog": " - Fixing Anilist timeout issues\\n - Frontend fixes\\n - Fix episode offset issues\\n - Update Jellyfin packages",
             "description": "Synchronize anime watch status between Jellyfin and anime tracking sites.\\n",
             "guid": "c78f11cf-93e6-4423-8c42-d2c255b70e47",
             "name": "Ani-Sync",
