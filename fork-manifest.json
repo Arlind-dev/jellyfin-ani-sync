@@ -9,7 +9,7 @@
     "versions": [
       {
         "checksum": "7a7df84b4ef2faef61ce212a8e4e7a77",
-        "changelog": "Automated release for version 3.6.0.1",
+        "changelog": "Updating Jellyfin packages which fixed a manual sync issue (includes the Shokofix like always)",
         "targetAbi": "10.10.1.0",
         "sourceUrl": "https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v3.6.0.1/10.10.1.0.-.ani-sync_3.6.0.1.zip",
         "timestamp": "2024-11-08T07:35:23Z",
