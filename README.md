@@ -16,7 +16,8 @@ You can add all of these but ShokoFix will suffice
 
 ### ShokoFix (basically nightly / beta with the AniDB Seasonal fix)
 
-**Minimum version**: 10.9.11.0
+**Minimum version for 3.5.0.\***: 10.9.11.0
+**Minimum version for 3.6.0.\* (latest)**: 10.10.1.0
 
 ```
 https://raw.githubusercontent.com/Arlind-dev/jellyfin-ani-sync/refs/heads/shokofix/fork-manifest.json
