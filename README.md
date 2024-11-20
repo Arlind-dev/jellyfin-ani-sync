@@ -10,6 +10,8 @@ Ani-Sync lets you synchorinze your Jellyfin Anime watch progress to popular serv
 
 This is not my code, I took it from this fork, https://github.com/Terrails/jellyfin-ani-sync, but I wanted to automate the release so I can easily add it in Jellyfin.
 
+I will nurture on this fork until https://github.com/vosmiic/jellyfin-ani-sync/issues/119 is implemeted.
+
 ## Repository
 
 You can add all of these but ShokoFix will suffice
