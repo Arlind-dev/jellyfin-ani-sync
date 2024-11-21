@@ -20,15 +20,39 @@ jobs:
       - name: Extract and determine version
         id: determine_version
         run: |
-          LATEST_VERSION=$(jq -r '.[0].versions | sort_by(.timestamp) | last | .version' ./beta-manifest.json)
+          # Define a function to extract the highest version from a given manifest file
+          get_highest_version() {
+            local manifest_file=$1
+            jq -r '.[0].versions | sort_by(.timestamp) | last | .version' "$manifest_file" 2>/dev/null || echo "0.0.0"
+          }
+
+          # Get the highest version from each manifest
+          BETA_VERSION=$(get_highest_version "./beta-manifest.json")
+          MAIN_VERSION=$(get_highest_version "./manifest.json")
+          UNSTABLE_VERSION=$(get_highest_version "./unstable-manifest.json")
+
+          # Determine the overall highest version
+          LATEST_VERSION=$(echo -e "$BETA_VERSION\n$MAIN_VERSION\n$UNSTABLE_VERSION" | sort -V | tail -n 1)
           BASE_VERSION=${LATEST_VERSION%.*}
           LAST_DIGIT=${LATEST_VERSION##*.}
           NEXT_VERSION="$BASE_VERSION.$((LAST_DIGIT + 1))"
+
+          # Ensure the new version is unique
           while git ls-remote --tags origin | grep -q "refs/tags/v$NEXT_VERSION"; do
             LAST_DIGIT=$((LAST_DIGIT + 1))
             NEXT_VERSION="$BASE_VERSION.$LAST_DIGIT"
           done
-          TARGET_ABI=$(jq -r '.[0].versions | sort_by(.timestamp) | last | .targetAbi' ./beta-manifest.json)
+
+          # Extract target ABI from the highest version manifest
+          if [[ "$LATEST_VERSION" == "$BETA_VERSION" ]]; then
+            TARGET_ABI=$(jq -r '.[0].versions | sort_by(.timestamp) | last | .targetAbi' ./beta-manifest.json)
+          elif [[ "$LATEST_VERSION" == "$MAIN_VERSION" ]]; then
+            TARGET_ABI=$(jq -r '.[0].versions | sort_by(.timestamp) | last | .targetAbi' ./manifest.json)
+          else
+            TARGET_ABI=$(jq -r '.[0].versions | sort_by(.timestamp) | last | .targetAbi' ./unstable-manifest.json)
+          fi
+
+          # Output the determined values
           echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
           echo "target_abi=$TARGET_ABI" >> $GITHUB_OUTPUT
 
