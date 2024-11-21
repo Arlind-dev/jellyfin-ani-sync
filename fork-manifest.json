@@ -9,7 +9,7 @@
     "versions": [
       {
         "checksum": "167d82007ebb25b13c5ba1d5a3d72ae7",
-        "changelog": "Functionally the same as the last version, but TargetAbi is now 10.10.3.0 lol",
+        "changelog": "This version is functionally identical to the previous one, but the TargetAbi was updated to 10.10.3.0. Based on version 3.7.0.0 of the original Ani-Sync app.",
         "targetAbi": "10.10.3.0",
         "sourceUrl": "https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v3.7.0.1/10.10.3.0.-.ani-sync_3.7.0.1.zip",
         "timestamp": "2024-11-21T20:33:17Z",
@@ -17,7 +17,7 @@
       },
       {
         "checksum": "7a7df84b4ef2faef61ce212a8e4e7a77",
-        "changelog": "Updating Jellyfin packages which fixed a manual sync issue (includes the Shokofix like always)",
+        "changelog": "Updated Jellyfin packages which fixed a manual sync issue. Based on version 3.6.0.0 of the original Ani-Sync app.",
         "targetAbi": "10.10.1.0",
         "sourceUrl": "https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v3.6.0.1/10.10.1.0.-.ani-sync_3.6.0.1.zip",
         "timestamp": "2024-11-08T07:35:23Z",
@@ -25,7 +25,7 @@
       },
       {
         "checksum": "a68d300cffae38131cc6f25b2e099cb4",
-        "changelog": "No functional changes, removed changelog from meta.json",
+        "changelog": "I removed the changelog field from meta.json because it wasn't needed. There are no functional changes in this release. Based on version 3.5.0.0 of the original Ani-Sync app.",
         "targetAbi": "10.9.11.0",
         "sourceUrl": "https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v3.5.0.3/10.9.11.0.-.ani-sync_3.5.0.3.zip",
         "timestamp": "2024-11-07T08:52:51Z",
@@ -33,7 +33,7 @@
       },
       {
         "checksum": "1fb2cd283a0fd4b18a1204a5fadcf99f",
-        "changelog": "No functional changes, only updated the Workflow to use more up to date dependencies",
+        "changelog": "This release doesn't include any changes to the app itself. I just updated the workflow to use more up-to-date dependencies. Based on version 3.5.0.0 of the original Ani-Sync app.",
         "targetAbi": "10.9.11.0",
         "sourceUrl": "https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v3.5.0.2/10.9.11.0.-.ani-sync_3.5.0.2.zip",
         "timestamp": "2024-11-07T08:40:36Z",
@@ -41,7 +41,7 @@
       },
       {
         "checksum": "e70a6738701444c5c11bcf547e94304e",
-        "changelog": "Version 3.5.0.0 of the stable with the ShokoFix changes from Terrails",
+        "changelog": "This is the first stable release of the fork, incorporating the Shokofix provided by Terrails. Based on version 3.5.0.0 of the original Ani-Sync app.",
         "targetAbi": "10.9.11.0",
         "sourceUrl": "https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v3.5.0.1/10.9.11.0.-.ani-sync_3.5.0.1.zip",
         "timestamp": "2024-11-04T12:05:58Z",
