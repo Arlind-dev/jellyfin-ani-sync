@@ -8,6 +8,14 @@
     "overview": "Synchronize anime watch status",
     "versions": [
       {
+        "checksum": "167d82007ebb25b13c5ba1d5a3d72ae7",
+        "changelog": "Automated release for version 3.7.0.1",
+        "targetAbi": "10.10.3.0",
+        "sourceUrl": "https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v3.7.0.1/10.10.3.0.-.ani-sync_3.7.0.1.zip",
+        "timestamp": "2024-11-21T20:33:17Z",
+        "version": "3.7.0.1"
+      },
+      {
         "checksum": "7a7df84b4ef2faef61ce212a8e4e7a77",
         "changelog": "Updating Jellyfin packages which fixed a manual sync issue (includes the Shokofix like always)",
         "targetAbi": "10.10.1.0",
