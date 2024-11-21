@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - shokofix
+    paths:
+      - 'jellyfin-ani-sync/**'
 
 jobs:
   version:
