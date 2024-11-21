@@ -17,7 +17,7 @@
       },
       {
         "checksum": "7a7df84b4ef2faef61ce212a8e4e7a77",
-        "changelog": "Updated Jellyfin packages which fixed a manual sync issue. Based on version 3.6.0.0 of the original Ani-Sync app.",
+        "changelog": "Updated Jellyfin packages, which fixed a manual sync issue. Based on version 3.6.0.0 of the original Ani-Sync app.",
         "targetAbi": "10.10.1.0",
         "sourceUrl": "https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v3.6.0.1/10.10.1.0.-.ani-sync_3.6.0.1.zip",
         "timestamp": "2024-11-08T07:35:23Z",
