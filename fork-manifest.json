@@ -9,7 +9,7 @@
     "versions": [
       {
         "checksum": "34cbe14423e4793c940a725cfa53233c",
-        "changelog": "Automated release for version 3.7.0.2",
+        "changelog": "Minor release: fixing setting start date and end date on new anime outside a users list. Based on version 3.7.0.0 of the original Ani-Sync app with the newest commits that aren't released yet.",
         "targetAbi": "10.10.3.0",
         "sourceUrl": "https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v3.7.0.2/10.10.3.0.-.ani-sync_3.7.0.2.zip",
         "timestamp": "2025-01-14T14:10:03Z",
@@ -17,7 +17,7 @@
       },
       {
         "checksum": "167d82007ebb25b13c5ba1d5a3d72ae7",
-        "changelog": "This version is functionally identical to the previous one, but the TargetAbi was updated to 10.10.3.0. Based on version 3.7.0.0 of the original Ani-Sync app.",
+        "changelog": "Minor release: This version is functionally identical to the previous one, but the TargetAbi was updated to 10.10.3.0. Based on version 3.7.0.0 of the original Ani-Sync app.",
         "targetAbi": "10.10.3.0",
         "sourceUrl": "https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v3.7.0.1/10.10.3.0.-.ani-sync_3.7.0.1.zip",
         "timestamp": "2024-11-21T20:33:17Z",
@@ -33,7 +33,7 @@
       },
       {
         "checksum": "a68d300cffae38131cc6f25b2e099cb4",
-        "changelog": "I removed the changelog field from meta.json because it wasn't needed. There are no functional changes in this release. Based on version 3.5.0.0 of the original Ani-Sync app.",
+        "changelog": "I removed the changelog field from meta.json because it wasn't needed. There are no functional changes in this release. Based on version 3.5.0.0 of the original Ani-Sync app with the newest commits that aren't released yet.",
         "targetAbi": "10.9.11.0",
         "sourceUrl": "https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v3.5.0.3/10.9.11.0.-.ani-sync_3.5.0.3.zip",
         "timestamp": "2024-11-07T08:52:51Z",
@@ -41,7 +41,7 @@
       },
       {
         "checksum": "1fb2cd283a0fd4b18a1204a5fadcf99f",
-        "changelog": "This release doesn't include any changes to the app itself. I just updated the workflow to use more up-to-date dependencies. Based on version 3.5.0.0 of the original Ani-Sync app.",
+        "changelog": "This release doesn't include any changes to the app itself. I just updated the workflow to use more up-to-date dependencies. Based on version 3.5.0.0 of the original Ani-Sync app with the newest commits that aren't released yet.",
         "targetAbi": "10.9.11.0",
         "sourceUrl": "https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v3.5.0.2/10.9.11.0.-.ani-sync_3.5.0.2.zip",
         "timestamp": "2024-11-07T08:40:36Z",
