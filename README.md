@@ -1,4 +1,4 @@
-<h1>Ani-Sync Jellyfin Plugin</h1>
+# Ani-Sync Jellyfin Plugin
 
 Original [README.md](https://github.com/vosmiic/jellyfin-ani-sync)
 
@@ -18,16 +18,15 @@ You can add all of these but ShokoFix will suffice
 
 ### ShokoFix (basically nightly / beta with the AniDB Seasonal fix)
 
+```
+https://raw.githubusercontent.com/Arlind-dev/jellyfin-ani-sync/shokofix/fork-manifest.json
+```
+
 | Plugin Version | Minimum Required Jellyfin Version |
 |----------------|-----------------------------------|
 | 3.5.0.\*       | 10.9.11.0                         |
 | 3.6.0.\*       | 10.10.1.0                         |
 | 3.7.0.\*       | 10.10.3.0                         |
-
-
-```
-https://raw.githubusercontent.com/Arlind-dev/jellyfin-ani-sync/refs/heads/shokofix/fork-manifest.json
-```
 
 ### Stable
 
