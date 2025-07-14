@@ -9,8 +9,8 @@
     "versions": [
       {
         "checksum": "b6a40c116ce340163491c9083bef239d",
-        "changelog": "Automated release for version 3.7.0.3",
-        "targetAbi": "10.10.3.0",
+        "changelog": "TargetAbi updated without any code changes.",
+        "targetAbi": "10.10.7.0",
         "sourceUrl": "https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v3.7.0.3/10.10.3.0.-.ani-sync_3.7.0.3.zip",
         "timestamp": "2025-07-14T21:19:54Z",
         "version": "3.7.0.3"
