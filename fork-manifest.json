@@ -8,6 +8,14 @@
     "overview": "Synchronize anime watch status",
     "versions": [
       {
+        "checksum": "b6a40c116ce340163491c9083bef239d",
+        "changelog": "Automated release for version 3.7.0.3",
+        "targetAbi": "10.10.3.0",
+        "sourceUrl": "https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v3.7.0.3/10.10.3.0.-.ani-sync_3.7.0.3.zip",
+        "timestamp": "2025-07-14T21:19:54Z",
+        "version": "3.7.0.3"
+      },
+      {
         "checksum": "34cbe14423e4793c940a725cfa53233c",
         "changelog": "Minor release: fixing setting start date and end date on new anime outside a users list. Based on version 3.7.0.0 of the original Ani-Sync app with the newest commits that aren't released yet.",
         "targetAbi": "10.10.3.0",
