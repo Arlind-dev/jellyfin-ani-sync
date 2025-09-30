@@ -22,11 +22,12 @@ You can add all of these but ShokoFix will suffice
 https://raw.githubusercontent.com/Arlind-dev/jellyfin-ani-sync/shokofix/fork-manifest.json
 ```
 
-| Plugin Version | Minimum Required Jellyfin Version |
-|----------------|-----------------------------------|
-| 3.5.0.\*       | 10.9.11.0                         |
-| 3.6.0.\*       | 10.10.1.0                         |
-| 3.7.0.\*       | 10.10.3.0                         |
+| Plugin Version          | Minimum Required Jellyfin Version |
+|-------------------------|-----------------------------------|
+| 3.5.0.\*                | 10.9.11.0                         |
+| 3.6.0.\*                | 10.10.1.0                         |
+| 3.7.0.0 - 3.7.0.2       | 10.10.3.0                         |
+| 3.7.0.3 - 3.7.0.4       | 10.10.7.0                         |
 
 ### Stable
 
