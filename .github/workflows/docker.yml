@@ -57,12 +57,18 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # nightly builds
-            type=raw,value=nightly,enable=${{ github.ref == 'refs/heads/master' || github.event_name == 'schedule' }}
-            # semver release tags (vX.Y.Z)
+            # Releases (vX.Y.Z) → version + latest
             type=semver,pattern={{version}}
             type=semver,pattern=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
-            # sha for all commits
+
+            # Master branch → master + nightly
+            type=raw,value=master,enable=${{ github.ref == 'refs/heads/master' }}
+            type=raw,value=nightly,enable=${{ github.ref == 'refs/heads/master' || github.event_name == 'schedule' }}
+
+            # Other branches → branch name
+            type=ref,event=branch
+
+            # Commits → SHA tag
             type=sha
 
       - name: Build and push multi-platform Docker image
