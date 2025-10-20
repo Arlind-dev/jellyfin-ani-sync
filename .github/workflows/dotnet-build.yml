@@ -6,6 +6,7 @@ on:
       - shokofix
     paths:
       - 'jellyfin-ani-sync/**'
+  workflow_dispatch:
 
 jobs:
   version:
