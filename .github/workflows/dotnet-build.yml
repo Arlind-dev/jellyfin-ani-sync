@@ -66,7 +66,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.x
+          dotnet-version: 9.x
 
       - name: Restore dependencies
         run: dotnet restore
@@ -78,7 +78,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jellyfin-ani-sync
-          path: ./jellyfin-ani-sync-unit-tests/bin/Release/net8.0/jellyfin-ani-sync.dll
+          path: ./jellyfin-ani-sync-unit-tests/bin/Release/net9.0/jellyfin-ani-sync.dll
 
   release:
     runs-on: ubuntu-latest
