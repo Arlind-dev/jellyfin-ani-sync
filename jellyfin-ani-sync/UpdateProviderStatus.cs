@@ -111,7 +111,7 @@ namespace jellyfin_ani_sync {
                           movie.ProviderIds.ContainsKey("AniList") &&
                           int.TryParse(movie.ProviderIds["AniList"], out retrievedAniListId)) {
                     _logger.LogInformation("AniList ID found. Retrieving provider IDs from offline database...");
-                    _apiIds = await AnimeOfflineDatabaseHelpers.GetProviderIdsFromMetadataProvider(_httpClientFactory.CreateClient(NamedClient.Default), retrievedAniListId, AnimeOfflineDatabaseHelpers.Source.Anilist);
+                    _apiIds = await AnimeOfflineDatabaseHelpers.GetProviderIdsFromMetadataProvider(_httpClientFactory.CreateClient(NamedClient.Default), _logger, retrievedAniListId, AnimeOfflineDatabaseHelpers.Source.Anilist);
                     if (_apiIds is null) {
                         _apiIds = new AnimeOfflineDatabaseHelpers.OfflineDatabaseResponse {
                             Anilist = retrievedAniListId
@@ -132,7 +132,7 @@ namespace jellyfin_ani_sync {
                         : await AnimeListHelpers.GetAniDbId(_logger, movie, movie.IndexNumber.Value, 1, animeListXml);
                     if (aniDbId.aniDbId != null) {
                         _logger.LogInformation($"Retrieving provider IDs from offline database for AniDb ID {aniDbId.aniDbId.Value}...");
-                        _apiIds = await AnimeOfflineDatabaseHelpers.GetProviderIdsFromMetadataProvider(_httpClientFactory.CreateClient(NamedClient.Default), aniDbId.aniDbId.Value, AnimeOfflineDatabaseHelpers.Source.Anidb);
+                        _apiIds = await AnimeOfflineDatabaseHelpers.GetProviderIdsFromMetadataProvider(_httpClientFactory.CreateClient(NamedClient.Default), _logger, aniDbId.aniDbId.Value, AnimeOfflineDatabaseHelpers.Source.Anidb);
                         if (_apiIds is null) {
                             _apiIds = new AnimeOfflineDatabaseHelpers.OfflineDatabaseResponse {
                                 AniDb = aniDbId.aniDbId
@@ -307,13 +307,13 @@ namespace jellyfin_ani_sync {
                                         }
                                     }
 
-                                    await CheckUserListAnimeStatus(matchingAnime.Id, episodeNumber, alternativeId: matchingAnime.AlternativeId);
+                                    await CheckUserListAnimeStatus(matchingAnime.Id, episodeNumber, overrideCheckRewatch: false, alternativeId: matchingAnime.AlternativeId);
                                     found = true;
                                     break;
                                 }
 
                                 if (_animeType == typeof(Movie)) {
-                                    await CheckUserListAnimeStatus(matchingAnime.Id, movie.IndexNumber.Value, alternativeId: matchingAnime.AlternativeId);
+                                    await CheckUserListAnimeStatus(matchingAnime.Id, movie.IndexNumber.Value, overrideCheckRewatch: false, alternativeId: matchingAnime.AlternativeId);
                                     found = true;
                                     break;
                                 }
@@ -418,19 +418,19 @@ namespace jellyfin_ani_sync {
         }
 
 
-        private async Task CheckUserListAnimeStatus(AnimeOfflineDatabaseHelpers.OfflineDatabaseResponse matchingIds, int episodeNumber, string title, bool? overrideCheckRewatch = null, string? alternativeId = null) {
+        private async Task CheckUserListAnimeStatus(AnimeOfflineDatabaseHelpers.OfflineDatabaseResponse matchingIds, int episodeNumber, string title, bool overrideCheckRewatch, string? alternativeId = null) {
             Anime detectedAnime = await GetAnime(matchingIds, title, alternativeId: alternativeId);
 
             await CheckUserListAnimeStatusBase(detectedAnime, episodeNumber, overrideCheckRewatch, alternativeId);
         }
 
-        private async Task CheckUserListAnimeStatus(int matchingAnimeId, int episodeNumber, bool? overrideCheckRewatch = null, string? alternativeId = null) {
+        private async Task CheckUserListAnimeStatus(int matchingAnimeId, int episodeNumber, bool overrideCheckRewatch, string? alternativeId = null) {
             Anime detectedAnime = await GetAnime(matchingAnimeId, alternativeId: alternativeId);
 
             await CheckUserListAnimeStatusBase(detectedAnime, episodeNumber, overrideCheckRewatch, alternativeId);
         }
 
-        private async Task CheckUserListAnimeStatusBase(Anime detectedAnime, int episodeNumber, bool? overrideCheckRewatch = null, string? alternativeId = null) {
+        private async Task CheckUserListAnimeStatusBase(Anime detectedAnime, int episodeNumber, bool overrideCheckRewatch, string? alternativeId = null) {
             if (detectedAnime == null) return;
             if (detectedAnime.MyListStatus != null && detectedAnime.MyListStatus.Status == Status.Watching && ApiName != ApiName.Annict) {
                 _logger.LogInformation($"({ApiName}) {(_animeType == typeof(Episode) ? "Series" : "Movie")} ({GetAnimeTitle(detectedAnime)}) found on watching list");
@@ -517,9 +517,8 @@ namespace jellyfin_ani_sync {
             }
         }
 
-        private async Task<bool> CheckIfRewatchCompleted(Anime detectedAnime, int indexNumber, bool? overrideCheckRewatch) {
-            if (overrideCheckRewatch == null ||
-                overrideCheckRewatch.Value ||
+        private async Task<bool> CheckIfRewatchCompleted(Anime detectedAnime, int indexNumber, bool overrideCheckRewatch) {
+            if (overrideCheckRewatch ||
                 detectedAnime.MyListStatus is { Status: Status.Completed } ||
                 detectedAnime.MyListStatus is { Status: Status.Rewatching } && detectedAnime.MyListStatus.NumEpisodesWatched < indexNumber) {
                 if (ApiName == ApiName.Simkl) {
