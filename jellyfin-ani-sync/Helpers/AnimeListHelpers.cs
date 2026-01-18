@@ -22,8 +22,9 @@ namespace jellyfin_ani_sync.Helpers {
         /// <param name="seasonNumber">Season number.</param>
         /// <returns></returns>
         public static async Task<(int? aniDbId, int? episodeOffset)> GetAniDbId(ILogger logger, Video video, int episodeNumber, int seasonNumber, AnimeListXml animeListXml) {
+            logger.LogInformation($"Looking up AniDB ID for {(video is Episode ? "episode" : "movie")} {video.Name}");
+            
             int aniDbId;
-            if (animeListXml == null) return (null, null);
             Dictionary<string, string> providers;
             if (video is Episode) {
                 var episode = video as Episode;
@@ -41,6 +42,8 @@ namespace jellyfin_ani_sync.Helpers {
             } else {
                 return (null, null);
             }
+
+            if (animeListXml == null) return (null, null);
 
             if (providers.ContainsKey("Anidb")) {
                 logger.LogInformation("(Anidb) Anime already has AniDb ID; no need to look it up");
