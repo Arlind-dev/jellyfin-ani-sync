@@ -6,6 +6,12 @@ on:
       - shokofix
     paths:
       - 'jellyfin-ani-sync/**'
+      - 'manifest.json'
+      - 'beta-manifest.json'
+      - 'unstable-manifest.json'
+      - 'fork-manifest.json'
+      - 'jellyfin-ani-sync.sln'
+  workflow_dispatch:
 
 jobs:
   version:
