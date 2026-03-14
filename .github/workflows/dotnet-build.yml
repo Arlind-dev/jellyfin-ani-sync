@@ -4,16 +4,10 @@ on:
   push:
     branches:
       - shokofix
-    paths:
-      - 'jellyfin-ani-sync/**'
-      - 'manifest.json'
-      - 'beta-manifest.json'
-      - 'unstable-manifest.json'
-      - 'fork-manifest.json'
-      - 'jellyfin-ani-sync.sln'
   workflow_dispatch:
 
-permissions: write-all
+permissions:
+  contents: write
 
 jobs:
   version:
@@ -101,7 +95,7 @@ jobs:
           name: jellyfin-ani-sync
 
       - name: Authenticate with GitHub CLI
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+        run: echo "${{ github.token }}" | gh auth login --with-token
 
       - name: Create meta.json
         run: |
