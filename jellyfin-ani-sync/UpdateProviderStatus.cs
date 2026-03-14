@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using jellyfin_ani_sync.Api;
 using jellyfin_ani_sync.Api.Anilist;
@@ -102,7 +103,36 @@ namespace jellyfin_ani_sync {
                 }
 
                 (int? aniDbId, int? episodeOffset) aniDbId = (null, null);
-                if (_animeType == typeof(Episode)
+
+                // Search for aniDb ID in external URLs first
+                var externalUrls = BaseItem.ProviderManager.GetExternalUrls(video);
+                var highestEpUrlMatch = externalUrls.Select(url => new Regex(@"AniDB \(e(?<anidbEpisodeId>\d+)\) \(a(?<anidbAnimeId>\d+) > (?<episodeType>E|SP)(?<episodeNumber>\d+)\)").Match(url.Name))
+                                 .Where(match => match.Success)
+                                 .OrderByDescending(match => {
+                                     if (int.TryParse(match.Groups["episodeNumber"].Value, out int epNum)) {
+                                         return epNum;
+                                     } else {
+                                         return -1;
+                                     }
+                                 })
+                                 .FirstOrDefault();
+
+                if (highestEpUrlMatch != null && int.TryParse(highestEpUrlMatch.Groups["anidbAnimeId"].Value, out int aniDbIdMatch)) {
+                    aniDbId = (aniDbIdMatch, null);
+
+                    var name = _animeType == typeof(Episode) ? episode.Season.Name : movie.Name;
+                    _logger.LogInformation($"(Anidb) Anime {name}; Found AniDB ID {aniDbId.aniDbId} from external URL name: {highestEpUrlMatch.Value}; no need to look it up");
+                    _logger.LogInformation($"Retrieving provider IDs from offline database for AniDb ID {aniDbId.aniDbId.Value}...");
+                    _apiIds = await AnimeOfflineDatabaseHelpers.GetProviderIdsFromMetadataProvider(_httpClientFactory.CreateClient(NamedClient.Default), _logger, aniDbId.aniDbId.Value, AnimeOfflineDatabaseHelpers.Source.Anidb);
+                    if (_apiIds is null) {
+                        _apiIds = new AnimeOfflineDatabaseHelpers.OfflineDatabaseResponse {
+                            AniDb = aniDbId.aniDbId
+                        };
+                        _logger.LogWarning("Did not get provider IDs, defaulting to episode provided AniDb ID");
+                    } else {
+                        _logger.LogInformation("Retrieved provider IDs");
+                    }
+                } else if (_animeType == typeof(Episode)
                         ? episode.ProviderIds != null &&
                           episode.Series.ProviderIds.ContainsKey("AniList") &&
                           episode.Season.IndexNumber.Value == 1 &&
