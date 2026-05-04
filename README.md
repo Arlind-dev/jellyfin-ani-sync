@@ -32,6 +32,7 @@ https://raw.githubusercontent.com/Arlind-dev/jellyfin-ani-sync/shokofix/fork-man
 | 3.9.0.*                 | 10.11.4.0                         |
 | 4.0.0.*                 | 10.11.6.0                         |
 | 4.1.0.*                 | 10.11.6.0                         |
+| 4.2.0.*                 | 10.11.8.0                         |
 
 ### Stable
 
