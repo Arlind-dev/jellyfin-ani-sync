@@ -61,7 +61,6 @@ jobs:
             TARGET_ABI=$(jq -r '.[0].versions | sort_by(.timestamp) | last | .targetAbi' ./unstable-manifest.json)
           fi
 
-          # Output the determined values
           echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
           echo "target_abi=$TARGET_ABI" >> $GITHUB_OUTPUT
 
