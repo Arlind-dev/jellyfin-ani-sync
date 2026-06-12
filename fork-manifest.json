@@ -8,6 +8,14 @@
     "overview": "Synchronize anime watch status",
     "versions": [
       {
+        "checksum": "ec52933eb6ae16c92de1f5db0336890d",
+        "changelog": "Automated release for version 4.4.0.1",
+        "targetAbi": "10.11.11.0",
+        "sourceUrl": "https://github.com/Arlind-dev/jellyfin-ani-sync/releases/download/v4.4.0.1/10.11.11.0.-.ani-sync_4.4.0.1.zip",
+        "timestamp": "2026-06-12T08:55:11Z",
+        "version": "4.4.0.1"
+      },
+      {
         "checksum": "fe11c653548b6d3b8154b778a4697a97",
         "changelog": "Automated release for version 4.3.0.3",
         "targetAbi": "10.11.8.0",
