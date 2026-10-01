@@ -23,7 +23,6 @@ public class SimklExtendedMedia : SimklBaseMedia {
     [JsonPropertyName("ids")] public SimklExtendedIds Ids { get; set; }
     [JsonPropertyName("en_title")] public string? EnTitle { get; set; }
     [JsonPropertyName("alt_titles")] public List<AltTitle> AllTitles { get; set; }
-    [JsonPropertyName("season")] public string Season { get; set; }
     [JsonPropertyName("total_episodes")] public int? TotalEpisodes { get; set; }
     [JsonPropertyName("relations")] public List<Relation> Relations { get; set; }
 }
