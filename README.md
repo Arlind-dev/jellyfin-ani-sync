@@ -1,72 +1,76 @@
-<h1>Ani-Sync Jellyfin Plugin</h1>
+# Ani-Sync Jellyfin Plugin — `shokofix` fork (retired)
 
-## About
+> ## ⚠️ This fork is retired. Please switch to upstream.
+>
+> This fork existed to make Ani-Sync handle AniDB IDs at the *season* level so it
+> would work correctly with [Shokofin](https://github.com/ShokoAnime/Shokofin).
+> That is now fixed upstream.
+>
+> [**vosmiic/jellyfin-ani-sync#221**](https://github.com/vosmiic/jellyfin-ani-sync/pull/221)
+> was merged on 2026-08-24 and closed
+> [issue #119](https://github.com/vosmiic/jellyfin-ani-sync/issues/119) — the exact
+> issue this fork was waiting on — along with #128, #135, #165, #181, #215 and #219.
+>
+> Upstream's implementation is a **superset** of this fork's and is covered by unit
+> tests. It additionally handles Shokofin *merged* seasons, applies anime-list
+> mapping offsets, and looks provider IDs up case-insensitively (`AniDB` as well as
+> `Anidb`), none of which this fork did.
 
-Ani-Sync lets you synchorinze your Jellyfin Anime watch progress to popular services. Please [create a discussion](https://github.com/vosmiic/jellyfin-ani-sync/discussions/new/choose) for new feature ideas.
+## What to install instead
 
-While I may not commit to the plugin too often, I am still maintaining it. Please do not presume the project is dead, and if you still have any ideas for the plugin or find an errors please do let me know by [creating a discussion](https://github.com/vosmiic/jellyfin-ani-sync/discussions/new/choose).
+The fix is in upstream's **beta** channel (v4.5b and newer). Upstream stable v4.4
+predates the fix, so use the beta manifest until the next stable release:
 
-## Installation
-
-### Automatic (recommended)
-1. Navigate to Settings > Admin Dashboard > Plugins > Repositories
-2. Add a new repository with a `Repository URL` of `https://raw.githubusercontent.com/vosmiic/jellyfin-ani-sync/master/manifest.json`. The name can be anything you like.
-3. Save, and navigate to Catalogue.
-4. Ani-Sync should be present. Click on it and install the latest version.
-
-### Manual
-
-[See the official Jellyfin documentation for install instructions](https://jellyfin.org/docs/general/server/plugins/index.html#installing).
-
-1. Download a version from the [releases tab](https://github.com/vosmiic/jellyfin-ani-sync/releases) that matches your Jellyfin version.
-2. Copy the `meta.json` and `jellyfin-ani-sync.dll` files into `plugins/ani-sync` (see above official documentation on where to find the `plugins` folder).
-3. Restart your Jellyfin instance.
-4. Navigate to Plugins in Jellyfin (Settings > Admin Dashboard > Plugins).
-5. Adjust the settings accordingly. I would advise following the detailed instructions on the [wiki page](https://github.com/vosmiic/jellyfin-ani-sync/wiki).
-
-#### Docker
-
-There is a Docker script that will pull the last built Docker image and copy the DLL file to the given directory.
-
-```bash
-docker run --rm -v "/plugin/dir/Ani-Sync:/out" ghcr.io/vosmiic/jellyfin-ani-sync
+```
+https://raw.githubusercontent.com/vosmiic/jellyfin-ani-sync/master/beta-manifest.json
 ```
 
-## Build
+Once a stable release newer than v4.4 is out, the stable manifest is enough:
 
-1. To build this plugin you will need [.Net 6.x](https://dotnet.microsoft.com/download/dotnet/6.0).
+```
+https://raw.githubusercontent.com/vosmiic/jellyfin-ani-sync/master/manifest.json
+```
 
-2. Build plugin with following command
-  ```
-  dotnet publish --configuration Release --output bin
-  ```
+### Migrating off this fork
 
-3. Place the dll-file in the `plugins/ani-sync` folder (you might need to create the folders) of your JF install
+1. Add the upstream manifest URL above in *Dashboard → Plugins → Repositories*.
+2. Remove the `shokofix` repository URL.
+3. Uninstall the fork's Ani-Sync plugin, then install Ani-Sync from upstream.
+4. Restart Jellyfin.
 
-## Services/providers
-### Currently supported
-1. MyAnimeList
-2. AniList
-3. (Beta) Kitsu
-4. (Limited support) Annict
-5. Shikimori
-6. Simkl
+Authentication and settings use the same plugin GUID and configuration file, so
+they carry over. Taking a backup of your plugin configuration first is still wise.
 
-## External tools
-### Anime Lists
-We use the XML documents in the [anime lists repo](https://github.com/Anime-Lists/anime-lists) to find the anime you are watching on each provider we support.
+## Status of this branch
 
-Please help the project by contributing to the lists of anime, it helps everyone!
-### Anime Offline Database/arm server
-We use the API offered by the [arm server repo](https://github.com/BeeeQueue/arm-server) which accesses the [~~anime offline database repo~~](https://github.com/manami-project/anime-offline-database) that we use to fetch our providers IDs so we can update your progress.
+`fork-manifest.json` is frozen at **4.4.0.1**; the release workflow's push trigger
+is disabled, so no further fork builds will be published. The branch is kept only
+so existing installs can still resolve their repository URL and find this notice.
 
-> **Note:** the original anime offline database repo was archived on 2026-07-04 and no longer accepts issues, PRs, or updates. [cedya77/anime-offline-database](https://github.com/cedya77/anime-offline-database) is an active continuation seeded from its final release (same format, weekly updates), and [Fribb/anime-lists](https://github.com/Fribb/anime-lists) — which arm-server's `/api/v2` endpoints are generated from — has already switched to pulling from it as of 2026-09-03 ([see the handoff thread](https://github.com/Fribb/anime-lists/issues/30)). Anime added since the original database's archival will only get cross-referenced to AniList/MAL through this new source.
+This branch is now upstream `master` plus this notice — it carries no functional
+changes of its own.
 
-Please also help these projects by contributing to the anime database/helping with the API server.
+## History
 
-## Development
-Beta releases can be installed automatically by replacing the manifest URL with `https://raw.githubusercontent.com/vosmiic/jellyfin-ani-sync/master/beta-manifest.json`. This will replace your version with the latest beta release (if there is a beta release more recent than the latest stable release). It will be replaced with the latest stable release when it is released, so both repos can be used at the same time. Authentication and other settings should be carried over. Use at your own risk.
+The original fork work was taken from [Terrails/jellyfin-ani-sync](https://github.com/Terrails/jellyfin-ani-sync)
+and wrapped in an automated release pipeline so it could be installed through
+Jellyfin's plugin repository UI.
 
-Unit tests can be found [here](https://github.com/vosmiic/jellyfin-ani-sync-unit-tests).
+Jellyfin versions required by the fork's published releases, for reference:
 
-The `docker.sh` file can be used to build and automatically copy the resulting DLL to the correct place. The first argument should be either the path to the Ani-Sync folder or the plugins folder (where it will attempt to find the latest Ani-Sync plugin folder). The second optional argument can be an image, or left empty to build using the Dockerfile.
+| Plugin Version    | Minimum Required Jellyfin Version |
+|-------------------|-----------------------------------|
+| 3.5.0.\*          | 10.9.11.0                         |
+| 3.6.0.\*          | 10.10.1.0                         |
+| 3.7.0.1 - 3.7.0.2 | 10.10.3.0                         |
+| 3.7.0.3 - 3.7.0.4 | 10.10.7.0                         |
+| 3.8.0.\*          | 10.11.0.0                         |
+| 3.9.0.\*          | 10.11.4.0                         |
+| 4.0.0.\*          | 10.11.6.0                         |
+| 4.1.0.\*          | 10.11.6.0                         |
+| 4.2.0.\*          | 10.11.8.0                         |
+| 4.3.0.\*          | 10.11.8.0                         |
+| 4.4.0.1           | 10.11.11.0                        |
+
+For everything about the plugin itself, see the
+[upstream README](https://github.com/vosmiic/jellyfin-ani-sync).
